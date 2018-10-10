@@ -1,3 +1,5 @@
+.DS_Store
+
 # Large directories used for storing training images
 flowers/
 
