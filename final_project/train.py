@@ -16,27 +16,6 @@ parser.add_argument('-g', '--gpu', default=True)
 parser.add_argument('-lr', '--learning_rate', default=0.001)
 args = parser.parse_args()
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-a', '--arch', help="vgg or densenet", default='vgg')
-parser.add_argument('-d', '--data_dir', default='flowers')
-parser.add_argument('-hl', '--hidden_layers', default=[1000])
-parser.add_argument('-e', '--epochs', default=3)
-parser.add_argument('-g', '--gpu', default=True)
-parser.add_argument('-lr', '--learning_rate', default=0.001)
-args = parser.parse_args()
-
-if args.arch == 'vgg':
-    arch = 'vgg16'
-elif args.arch == 'densenet':
-    arch = 'densenet121'
-else:
-    raise ValueError('Unexpected architecture', args.arch)
-
-if args.gpu == True:
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-else:
-    device = torch.device("cpu")
-
 def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
     model = getattr(models, archit)(pretrained=True)
 
@@ -76,7 +55,7 @@ def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
 
 
 
-def validation(model, testloader, criterion):
+def validation(model, testloader, criterion, device):
     accuracy = 0
     test_loss = 0
     model.eval() # Evaluation mode
@@ -101,7 +80,7 @@ def validation(model, testloader, criterion):
     
     return test_loss, accuracy
 
-def train(model, trainloader, testloader, criterion, optimizer, epochs=args.epochs, print_every=20):
+def train(model, trainloader, testloader, criterion, optimizer, device, epochs=args.epochs, print_every=20):
     
     steps = 0
     running_loss = 0
@@ -126,7 +105,7 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=args.epoc
  
                 model.eval()
                 
-                test_loss, accuracy = validation(model, testloader, criterion)
+                test_loss, accuracy = validation(model, testloader, criterion, device)
                 
                 print("Epoch: {}/{}.. ".format(e+1, epochs),
                       "Training Loss: {:.3f}.. ".format(running_loss/print_every),
@@ -137,6 +116,18 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=args.epoc
                 
                 model.train()
 def main():
+    if args.arch == 'vgg':
+        arch = 'vgg16'
+    elif args.arch == 'densenet':
+        arch = 'densenet121'
+    else:
+        raise ValueError('Unexpected architecture', args.arch)
+
+    if args.gpu == True:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
+
     data_dir = args.data_dir
     train_dir = data_dir + '/train'
     valid_dir = data_dir + '/valid'
@@ -183,12 +174,13 @@ def main():
     optimizer = optim.Adam(model.classifier.parameters(), lr=args.learning_rate)
 
     print("using ", device)
+    model.to(device)
     print("begin training")
-    train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, epochs=3, print_every=20)
+    train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, device, epochs=3, print_every=20)
     print("trained\n\n")
 
     # Check the test loss and accuracy of the trained network
-    test_loss, accuracy = validation(model, dataloaders['test'], criterion)
+    test_loss, accuracy = validation(model, dataloaders['test'], criterion, device)
     print("Network preformance on test dataset-------------")
     print("Test Loss: {:.3f}.. ".format(test_loss/len(dataloaders['test'])),
                           "Test Accuracy: {:.3f}".format(accuracy/len(dataloaders['test'])))
