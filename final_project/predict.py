@@ -23,7 +23,7 @@ else:
     device = torch.device("cpu")
 
 def load_model(path): # 'checkpoint.pt'
-    checkpoint = torch.load(path, map_location={'cuda:0': 'cpu'})
+    checkpoint = torch.load(path, map_location={'cuda:0': str(device)})
 
     arch = checkpoint['arch']
     out_features = len(checkpoint['class_to_idx'])
