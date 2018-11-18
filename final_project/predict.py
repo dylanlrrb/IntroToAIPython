@@ -82,7 +82,7 @@ def predict(image_path, model, topk=5):
     tensor_img = tensor_img.to(device)
     
     result = model(tensor_img).topk(topk)
-    if device == "cuda:0":
+    if str(device) == "cuda:0":
         probs = torch.exp(result[0].data).cpu().numpy()[0]
         idxs = result[1].data.cpu().numpy()[0]
     else:
