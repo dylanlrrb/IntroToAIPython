@@ -183,6 +183,7 @@ def main():
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.classifier.parameters(), lr=args.learning_rate)
 
+    print("using ", device)
     print("begin training")
     train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, epochs=3, print_every=20)
     print("trained\n\n")
