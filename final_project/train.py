@@ -46,42 +46,46 @@ def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
 
 
 
-def validation(model, testloader, criterion, device):
+def validate(model, criterion, testing_set, device):
     accuracy = 0
     test_loss = 0
     model.eval() # Evaluation mode
     with torch.no_grad():
-        for images, labels in testloader:
-            images, labels = images.to(device), labels.to(device)
+        for images, labels in testing_set:
+            
+            images = images.to(device)
+            labels = labels.to(device)
 
             output = model.forward(images)
             test_loss += criterion(output, labels).item()
 
             # Take exponential to get log softmax probibilities
-            ps = torch.exp(output)
+            probs = torch.exp(output)
 
             # highest probability is the predicted class
             # compare with true label
-            equality = (labels.data == ps.max(1)[1])
+            correct_predictions = (labels.data == probs.max(1)[1])
 
             # Turn ByteTensor into np_array to calculate mean
-            accuracy += np.array(equality).mean()
+            accuracy += np.array(correct_predictions).mean()
     
     model.train() # Switch training mode back on
     
-    return test_loss, accuracy
+    return test_loss/len(testing_set), accuracy/len(testing_set)
 
-def train(model, trainloader, testloader, criterion, optimizer, device, epochs=3, print_every=20):
+def train(model, criterion, optimizer, training_set, testing_set, device, epochs=3, log_frequency=20):
     
-    steps = 0
-    running_loss = 0
-    for e in range(epochs):
+    batch = 0
+    train_loss = 0
+    for epoch in range(epochs):
         model.train() # Turn on training mode
         
-        for images, labels in trainloader:
+        for images, labels in training_set:
 
-            steps += 1
-            images, labels = images.to(device), labels.to(device)
+            batch += 1
+            
+            images = images.to(device)
+            labels = labels.to(device)
 
             optimizer.zero_grad() # Prevent gradients from accumulating
             
@@ -91,29 +95,26 @@ def train(model, trainloader, testloader, criterion, optimizer, device, epochs=3
             loss.backward()
             optimizer.step()
             
-            running_loss += loss.item()
-            if steps % print_every == 0:
- 
-                model.eval()
+            train_loss += loss.item()
+            if batch % log_frequency == 0:
                 
-                test_loss, accuracy = validation(model, testloader, criterion, device)
+                test_loss, accuracy = validate(model, criterion, testing_set, device)
                 
-                print("Epoch: {}/{}.. ".format(e+1, epochs),
-                      "Training Loss: {:.3f}.. ".format(running_loss/print_every),
-                      "Test Loss: {:.3f}.. ".format(test_loss/len(testloader)),
-                      "Test Accuracy: {:.3f}".format(accuracy/len(testloader)))
+                print("Epoch: {} of {}, ".format(epoch+1, epochs),
+                      "Train Loss: {:.3f}, ".format(train_loss/log_frequency),
+                      "Test Loss: {:.3f}, ".format(test_loss),
+                      "Accuracy: %{:.1f}".format(accuracy*100))
                 
-                running_loss = 0
-                
-                model.train()
+                train_loss = 0
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--arch', help="vgg or densenet", default='vgg')
     parser.add_argument('-d', '--data_dir', default='flowers')
     parser.add_argument('-hl', '--hidden_layers', type=int, default=1000)
-    parser.add_argument('-e', '--epochs', default=3)
-    parser.add_argument('-g', '--gpu', default=True)
-    parser.add_argument('-lr', '--learning_rate', default=0.001)
+    parser.add_argument('-e', '--epochs', type=int, default=3)
+    parser.add_argument('-g', '--gpu', type=bool, default=True)
+    parser.add_argument('-lr', '--learning_rate', type=float, default=0.001)
     args = parser.parse_args()
 
     if args.arch == 'vgg':
@@ -176,14 +177,13 @@ def main():
     print("using ", device)
     model.to(device)
     print("begin training")
-    train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, device, epochs=args.epochs, print_every=20)
+    train(model, criterion, optimizer, dataloaders['train'], dataloaders['valid'], device, epochs=args.epochs, log_frequency=20)
     print("trained\n\n")
 
     # Check the test loss and accuracy of the trained network
-    test_loss, accuracy = validation(model, dataloaders['test'], criterion, device)
+    test_loss, accuracy = validate(model, criterion, dataloaders['test'], device)
     print("Network preformance on test dataset-------------")
-    print("Test Loss: {:.3f}.. ".format(test_loss/len(dataloaders['test'])),
-                          "Test Accuracy: {:.3f}".format(accuracy/len(dataloaders['test'])))
+    print("Accuracy on test dataset: %{:.1f}".format(accuracy*100))
 
     model.class_to_idx = image_datasets['train'].class_to_idx
 

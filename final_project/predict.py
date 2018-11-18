@@ -14,7 +14,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--checkpoint', help="path to checkpoint", default='./checkpoint.pt')
 parser.add_argument('-i', '--image', help="image path", default='./flowers/test/85/image_04805.jpg')
 parser.add_argument('-l', '--lables', help="JSON category mappings", default=None)
-parser.add_argument('-g', '--gpu', default=True)
+parser.add_argument('-g', '--gpu', type=bool, default=True)
+parser.add_argument('-k', '--topk', type=int, default=5)
 args = parser.parse_args()
 
 if args.gpu == True:
@@ -22,7 +23,7 @@ if args.gpu == True:
 else:
     device = torch.device("cpu")
 
-def load_model(path): # 'checkpoint.pt'
+def load_model(path):
     checkpoint = torch.load(path, map_location={'cuda:0': str(device)})
 
     arch = checkpoint['arch']
@@ -45,15 +46,15 @@ def process_image(image_path):
         returns an Numpy array
     '''
     # Define same transforms that are used in training images
-    image_loader = transforms.Compose([transforms.Resize(255),
+    load_transforms = transforms.Compose([transforms.Resize(255),
                                      transforms.CenterCrop(224),
                                      transforms.ToTensor()])
     # open the image
     pil_image = Image.open(image_path)
     # transform the image
-    pil_image = image_loader(pil_image)
+    transformed_pil_image = load_transforms(pil_image)
     # Turn into np_array
-    np_image = np.array(pil_image)
+    np_image = np.array(transformed_pil_image)
     
     # undo mean and std then transpose
     mean = np.array([0.485, 0.456, 0.406])
@@ -66,6 +67,9 @@ def process_image(image_path):
 def predict(image_path, model, topk=5):
     ''' Predict the class (or classes) of an image using a trained deep learning model.
     '''
+    if topk < 1:
+        topk = 1
+
     model.to(device)
     
     model.eval()
@@ -95,7 +99,7 @@ test_image_path = args.image
 
 print('using device:', device)
 # Get the probabilties and indices from passing the image through the model
-probs, idxs = predict(test_image_path, loaded_model)
+probs, idxs = predict(test_image_path, loaded_model, topk=args.topk)
 
 # Swap the keys and values in class_to_idx so that
 # indices can be mapped to original classes in dataset
@@ -110,9 +114,13 @@ if args.lables != None:
 else:
     idxs = list(map(lambda x: idx_to_class[x], idxs))
 
-topk = zip(idxs, probs)
+topk = list(zip(idxs, probs))
 
-print("\n---Top 5 predictions---")
+print("\nMost Probable Class:")
+print("{}: {:.1f}%".format(topk[0][0], topk[0][1] * 100))
+
+print(f"\n---Top {args.topk} predictions---")
 
 for i in topk:
-    print(f"{i[0]}: {i[1] * 100} %")
+    print("{}: {:.1f}%".format(i[0], i[1] * 100))
+    
