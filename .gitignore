@@ -1,4 +1,5 @@
 .DS_Store
+.vscode/
 
 # Large directories used for storing training images
 flowers/

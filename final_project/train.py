@@ -7,6 +7,8 @@ from torchvision import datasets, transforms, models
 from collections import OrderedDict
 import argparse
 
+device = None
+
 def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
     model = getattr(models, archit)(pretrained=True)
 
