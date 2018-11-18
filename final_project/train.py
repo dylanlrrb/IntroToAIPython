@@ -90,6 +90,7 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=args.epoc
         model.train() # Turn on training mode
         
         for images, labels in trainloader:
+            print('.')
             steps += 1
             images, labels = images.to(device), labels.to(device)
 
