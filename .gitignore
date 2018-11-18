@@ -2,6 +2,7 @@
 
 # Large directories used for storing training images
 flowers/
+checkpoint.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
