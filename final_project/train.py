@@ -7,15 +7,6 @@ from torchvision import datasets, transforms, models
 from collections import OrderedDict
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-a', '--arch', help="vgg or densenet", default='vgg')
-parser.add_argument('-d', '--data_dir', default='flowers')
-parser.add_argument('-hl', '--hidden_layers', type=int, default=1000)
-parser.add_argument('-e', '--epochs', default=3)
-parser.add_argument('-g', '--gpu', default=True)
-parser.add_argument('-lr', '--learning_rate', default=0.001)
-args = parser.parse_args()
-
 def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
     model = getattr(models, archit)(pretrained=True)
 
@@ -80,7 +71,7 @@ def validation(model, testloader, criterion, device):
     
     return test_loss, accuracy
 
-def train(model, trainloader, testloader, criterion, optimizer, device, epochs=args.epochs, print_every=20):
+def train(model, trainloader, testloader, criterion, optimizer, device, epochs=3, print_every=20):
     
     steps = 0
     running_loss = 0
@@ -116,6 +107,15 @@ def train(model, trainloader, testloader, criterion, optimizer, device, epochs=a
                 
                 model.train()
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a', '--arch', help="vgg or densenet", default='vgg')
+    parser.add_argument('-d', '--data_dir', default='flowers')
+    parser.add_argument('-hl', '--hidden_layers', type=int, default=1000)
+    parser.add_argument('-e', '--epochs', default=3)
+    parser.add_argument('-g', '--gpu', default=True)
+    parser.add_argument('-lr', '--learning_rate', default=0.001)
+    args = parser.parse_args()
+
     if args.arch == 'vgg':
         arch = 'vgg16'
     elif args.arch == 'densenet':
@@ -176,7 +176,7 @@ def main():
     print("using ", device)
     model.to(device)
     print("begin training")
-    train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, device, epochs=3, print_every=20)
+    train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, device, epochs=args.epochs, print_every=20)
     print("trained\n\n")
 
     # Check the test loss and accuracy of the trained network
