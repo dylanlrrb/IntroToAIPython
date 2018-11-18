@@ -21,7 +21,7 @@ def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
 
     # Freeze the params from training
     for param in model.parameters():
-        param.requires_grad = False\
+        param.requires_grad = False
 
     # Find the number of in features the classifier expects
     try:
