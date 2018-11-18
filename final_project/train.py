@@ -7,6 +7,15 @@ from torchvision import datasets, transforms, models
 from collections import OrderedDict
 import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-a', '--arch', help="vgg or densenet", default='vgg')
+parser.add_argument('-d', '--data_dir', default='flowers')
+parser.add_argument('-hl', '--hidden_layers', default=[1000])
+parser.add_argument('-e', '--epochs', default=3)
+parser.add_argument('-g', '--gpu', default=True)
+parser.add_argument('-lr', '--learning_rate', default=0.001)
+args = parser.parse_args()
+
 device = None
 
 def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
@@ -73,7 +82,7 @@ def validation(model, testloader, criterion):
     
     return test_loss, accuracy
 
-def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_every=40):
+def train(model, trainloader, testloader, criterion, optimizer, epochs=args.epochs, print_every=20):
     
     steps = 0
     running_loss = 0
