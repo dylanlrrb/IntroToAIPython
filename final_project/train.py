@@ -16,8 +16,6 @@ parser.add_argument('-g', '--gpu', default=True)
 parser.add_argument('-lr', '--learning_rate', default=0.001)
 args = parser.parse_args()
 
-device = None
-
 def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
     model = getattr(models, archit)(pretrained=True)
 
@@ -57,7 +55,7 @@ def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
 
 
 
-def validation(model, testloader, criterion):
+def validation(model, testloader, criterion, device):
     accuracy = 0
     test_loss = 0
     model.eval() # Evaluation mode
@@ -82,7 +80,7 @@ def validation(model, testloader, criterion):
     
     return test_loss, accuracy
 
-def train(model, trainloader, testloader, criterion, optimizer, epochs=args.epochs, print_every=20):
+def train(model, trainloader, testloader, criterion, optimizer, device, epochs=args.epochs, print_every=20):
     
     steps = 0
     running_loss = 0
@@ -90,7 +88,7 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=args.epoc
         model.train() # Turn on training mode
         
         for images, labels in trainloader:
-            print('.')
+
             steps += 1
             images, labels = images.to(device), labels.to(device)
 
@@ -107,7 +105,7 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=args.epoc
  
                 model.eval()
                 
-                test_loss, accuracy = validation(model, testloader, criterion)
+                test_loss, accuracy = validation(model, testloader, criterion, device)
                 
                 print("Epoch: {}/{}.. ".format(e+1, epochs),
                       "Training Loss: {:.3f}.. ".format(running_loss/print_every),
@@ -186,11 +184,11 @@ def main():
 
     print("using ", device)
     print("begin training")
-    train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, epochs=3, print_every=20)
+    train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, device, epochs=3, print_every=20)
     print("trained\n\n")
 
     # Check the test loss and accuracy of the trained network
-    test_loss, accuracy = validation(model, dataloaders['test'], criterion)
+    test_loss, accuracy = validation(model, dataloaders['test'], criterion, device)
     print("Network preformance on test dataset-------------")
     print("Test Loss: {:.3f}.. ".format(test_loss/len(dataloaders['test'])),
                           "Test Accuracy: {:.3f}".format(accuracy/len(dataloaders['test'])))
