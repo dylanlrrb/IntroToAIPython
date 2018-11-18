@@ -10,7 +10,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-a', '--arch', help="vgg or densenet", default='vgg')
 parser.add_argument('-d', '--data_dir', default='flowers')
-parser.add_argument('-hl', '--hidden_layers', default=1000)
+parser.add_argument('-hl', '--hidden_layers', type=int, default=1000)
 parser.add_argument('-e', '--epochs', default=3)
 parser.add_argument('-g', '--gpu', default=True)
 parser.add_argument('-lr', '--learning_rate', default=0.001)
