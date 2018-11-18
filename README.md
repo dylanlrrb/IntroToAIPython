@@ -28,6 +28,7 @@ First up is importing the packages you'll need. It's good practice to keep all t
 import matplotlib.pyplot as plt
 
 import torch
+import numpy as np
 from torch import nn
 from torch import optim
 import torch.nn.functional as F
@@ -121,7 +122,7 @@ When training make sure you're updating only the weights of the feed-forward net
 
 ```python
 # Load network as feature detector
-def build_network(arch="vgg13", out_features=102, hidden_layers=[1000]):
+def build_network(arch="vgg16", out_features=102, hidden_layers=[1000]):
     model = getattr(models, arch)(pretrained=True)
 
     # Freeze the params from training
@@ -178,17 +179,23 @@ print(model)
         (11): ReLU(inplace)
         (12): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
         (13): ReLU(inplace)
-        (14): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
-        (15): Conv2d(256, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (16): ReLU(inplace)
-        (17): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (14): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (15): ReLU(inplace)
+        (16): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (17): Conv2d(256, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
         (18): ReLU(inplace)
-        (19): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
-        (20): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (21): ReLU(inplace)
-        (22): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (23): ReLU(inplace)
-        (24): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (19): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (20): ReLU(inplace)
+        (21): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (22): ReLU(inplace)
+        (23): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (24): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (25): ReLU(inplace)
+        (26): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (27): ReLU(inplace)
+        (28): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (29): ReLU(inplace)
+        (30): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
       )
       (classifier): Sequential(
         (drop1): Dropout(p=0.5)
@@ -202,41 +209,45 @@ print(model)
 
 
 ```python
-def validation(model, testloader, criterion):
+def validate(model, criterion, testing_set):
     accuracy = 0
     test_loss = 0
     model.eval() # Evaluation mode
     with torch.no_grad():
-        for images, labels in testloader:
-            images, labels = images.to(device), labels.to(device)
+        for images, labels in testing_set:
+            
+            images = images.to(device)
+            labels = labels.to(device)
 
             output = model.forward(images)
             test_loss += criterion(output, labels).item()
 
             # Take exponential to get log softmax probibilities
-            ps = torch.exp(output)
+            probs = torch.exp(output)
 
             # highest probability is the predicted class
             # compare with true label
-            equality = (labels.data == ps.max(1)[1])
+            correct_predictions = (labels.data == probs.max(1)[1])
 
             # Turn ByteTensor into np_array to calculate mean
-            accuracy += np.array(equality).mean()
+            accuracy += np.array(correct_predictions).mean()
     
     model.train() # Switch training mode back on
     
-    return test_loss, accuracy
+    return test_loss/len(testing_set), accuracy/len(testing_set)
 
-def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_every=40):
+def train(model, criterion, optimizer, traning_set, testing_set, epochs=5, log_frequency=20):
     
-    steps = 0
-    running_loss = 0
-    for e in range(epochs):
+    batch = 0
+    train_loss = 0
+    for epoch in range(epochs):
         model.train() # Turn on training mode
         
-        for images, labels in trainloader:
-            steps += 1
-            images, labels = images.to(device), labels.to(device)
+        for images, labels in traning_set:
+            batch += 1
+            
+            images = images.to(device)
+            labels = labels.to(device)
 
             optimizer.zero_grad() # Prevent gradients from accumulating
             
@@ -246,21 +257,17 @@ def train(model, trainloader, testloader, criterion, optimizer, epochs=5, print_
             loss.backward()
             optimizer.step()
             
-            running_loss += loss.item()
-            if steps % print_every == 0:
- 
-                model.eval()
+            train_loss += loss.item()
+            if batch % log_frequency == 0:
                 
-                test_loss, accuracy = validation(model, testloader, criterion)
+                test_loss, accuracy = validate(model, criterion, testing_set)
                 
-                print("Epoch: {}/{}.. ".format(e+1, epochs),
-                      "Training Loss: {:.3f}.. ".format(running_loss/print_every),
-                      "Test Loss: {:.3f}.. ".format(test_loss/len(testloader)),
-                      "Test Accuracy: {:.3f}".format(accuracy/len(testloader)))
+                print("Epoch: {} of {}, ".format(epoch+1, epochs),
+                      "Train Loss: {:.3f}, ".format(train_loss/log_frequency),
+                      "Test Loss: {:.3f}, ".format(test_loss),
+                      "Accuracy: %{:.1f}".format(accuracy*100))
                 
-                running_loss = 0
-                
-                model.train()
+                train_loss = 0
 ```
 
 
@@ -280,26 +287,26 @@ criterion = nn.NLLLoss()
 optimizer = optim.Adam(model.classifier.parameters(), lr=0.001)
 
 print("begin training")
-train(model, dataloaders['train'], dataloaders['valid'], criterion, optimizer, epochs=3, print_every=20)
+train(model, criterion, optimizer, dataloaders['train'], dataloaders['valid'], epochs=3, log_frequency=20)
 print("trained")
 ```
 
     begin training
-    Epoch: 1/3..  Training Loss: 3.934..  Test Loss: 2.310..  Test Accuracy: 0.470
-    Epoch: 1/3..  Training Loss: 2.326..  Test Loss: 1.312..  Test Accuracy: 0.648
-    Epoch: 1/3..  Training Loss: 1.740..  Test Loss: 0.956..  Test Accuracy: 0.728
-    Epoch: 1/3..  Training Loss: 1.431..  Test Loss: 0.746..  Test Accuracy: 0.795
-    Epoch: 1/3..  Training Loss: 1.272..  Test Loss: 0.712..  Test Accuracy: 0.799
-    Epoch: 2/3..  Training Loss: 1.186..  Test Loss: 0.643..  Test Accuracy: 0.819
-    Epoch: 2/3..  Training Loss: 1.105..  Test Loss: 0.570..  Test Accuracy: 0.840
-    Epoch: 2/3..  Training Loss: 1.064..  Test Loss: 0.623..  Test Accuracy: 0.827
-    Epoch: 2/3..  Training Loss: 0.948..  Test Loss: 0.552..  Test Accuracy: 0.854
-    Epoch: 2/3..  Training Loss: 1.085..  Test Loss: 0.574..  Test Accuracy: 0.841
-    Epoch: 3/3..  Training Loss: 0.954..  Test Loss: 0.509..  Test Accuracy: 0.860
-    Epoch: 3/3..  Training Loss: 0.925..  Test Loss: 0.461..  Test Accuracy: 0.861
-    Epoch: 3/3..  Training Loss: 0.918..  Test Loss: 0.444..  Test Accuracy: 0.879
-    Epoch: 3/3..  Training Loss: 0.859..  Test Loss: 0.473..  Test Accuracy: 0.875
-    Epoch: 3/3..  Training Loss: 0.899..  Test Loss: 0.431..  Test Accuracy: 0.871
+    Epoch: 1 of 3,  Train Loss: 3.967,  Test Loss: 2.590,  Accuracy: %44.7
+    Epoch: 1 of 3,  Train Loss: 2.404,  Test Loss: 1.356,  Accuracy: %63.4
+    Epoch: 1 of 3,  Train Loss: 1.763,  Test Loss: 1.098,  Accuracy: %68.9
+    Epoch: 1 of 3,  Train Loss: 1.523,  Test Loss: 0.879,  Accuracy: %76.4
+    Epoch: 1 of 3,  Train Loss: 1.473,  Test Loss: 0.782,  Accuracy: %78.0
+    Epoch: 2 of 3,  Train Loss: 1.198,  Test Loss: 0.727,  Accuracy: %80.8
+    Epoch: 2 of 3,  Train Loss: 1.079,  Test Loss: 0.628,  Accuracy: %82.5
+    Epoch: 2 of 3,  Train Loss: 1.102,  Test Loss: 0.611,  Accuracy: %83.5
+    Epoch: 2 of 3,  Train Loss: 1.083,  Test Loss: 0.502,  Accuracy: %86.6
+    Epoch: 2 of 3,  Train Loss: 0.992,  Test Loss: 0.520,  Accuracy: %86.9
+    Epoch: 3 of 3,  Train Loss: 1.018,  Test Loss: 0.485,  Accuracy: %86.1
+    Epoch: 3 of 3,  Train Loss: 0.887,  Test Loss: 0.573,  Accuracy: %84.0
+    Epoch: 3 of 3,  Train Loss: 0.943,  Test Loss: 0.522,  Accuracy: %85.2
+    Epoch: 3 of 3,  Train Loss: 0.818,  Test Loss: 0.451,  Accuracy: %87.7
+    Epoch: 3 of 3,  Train Loss: 0.900,  Test Loss: 0.478,  Accuracy: %87.4
     trained
 
 
@@ -310,14 +317,13 @@ It's good practice to test your trained network on test data, images the network
 
 ```python
 # Check the test loss and accuracy of the trained network
-test_loss, accuracy = validation(model, dataloaders['test'], criterion)
+test_loss, accuracy = validate(model, criterion, dataloaders['test'])
 print("Network preformance on test dataset-------------")
-print("Test Loss: {:.3f}.. ".format(test_loss/len(dataloaders['test'])),
-                      "Test Accuracy: {:.3f}".format(accuracy/len(dataloaders['test'])))
+print("Accuracy on test dataset: %{:.1f}".format(accuracy*100))
 ```
 
     Network preformance on test dataset-------------
-    Test Loss: 0.497..  Test Accuracy: 0.875
+    Accuracy on test dataset: %83.8
 
 
 ## Save the checkpoint
@@ -333,14 +339,18 @@ Remember that you'll want to completely rebuild the model later so you can use i
 model.class_to_idx = image_datasets['train'].class_to_idx
 
 checkpoint = {
-    "arch": "vgg13",
+    "arch": "vgg16",
     "class_to_idx": model.class_to_idx,
     'state_dict': model.state_dict(),
     "hidden_layers": [1000]
 }
 
 torch.save(checkpoint, "checkpoint.pt")
+print("saved checkpoint")
 ```
+
+    saved checkpoint
+
 
 ## Loading the checkpoint
 
@@ -348,7 +358,7 @@ At this point it's good to write a function that can load a checkpoint and rebui
 
 
 ```python
-def load_model(path): # 'checkpoint.pt'
+def load_model(path):
     checkpoint = torch.load(path)
 
     arch = checkpoint['arch']
@@ -364,7 +374,11 @@ def load_model(path): # 'checkpoint.pt'
     return model
     
 loaded_model = load_model('checkpoint.pt')
+print("loaded")
 ```
+
+    loaded
+
 
 # Inference for classification
 
@@ -402,15 +416,15 @@ def process_image(image_path):
         returns an Numpy array
     '''
     # Define same transforms that are used in training images
-    image_loader = transforms.Compose([transforms.Resize(255),
+    load_transforms = transforms.Compose([transforms.Resize(255),
                                      transforms.CenterCrop(224),
                                      transforms.ToTensor()])
     # open the image
     pil_image = Image.open(image_path)
     # transform the image
-    pil_image = image_loader(pil_image)
+    transformed_pil_image = load_transforms(pil_image)
     # Turn into np_array
-    np_image = np.array(pil_image)
+    np_image = np.array(transformed_pil_image)
     
     # undo mean and std then transpose
     mean = np.array([0.485, 0.456, 0.406])
@@ -470,6 +484,9 @@ print(classes)
 def predict(image_path, model, topk=5):
     ''' Predict the class (or classes) of an image using a trained deep learning model.
     '''
+    if topk < 1:
+        topk = 1
+        
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model.to(device)
     
@@ -478,7 +495,7 @@ def predict(image_path, model, topk=5):
     # Turn the np_array image into a FloatTensor
     # before running through model
     tensor_img = torch.FloatTensor([process_image(image_path)])
-    # Note: model expects an 1D array of tensors of size (2, 244, 244)
+    # Note: model expects an 1D array of tensors of size (3, 244, 244)
     # so that's why I'm putting the result of process_image()
     # in brackets before passing into FloatTensor()
     # in other words, model expects a tensor of size (1, 3, 244, 244)
@@ -493,6 +510,7 @@ def predict(image_path, model, topk=5):
     probs = torch.exp(result[0].data).cpu().numpy()[0]
     # .cpu() to take the tensor off gpu
     # so it can be turned into a np_array
+    # .cpu() should not be called if predicting on a cpu already
     idxs = result[1].data.cpu().numpy()[0]
     
     return(probs, idxs)
@@ -503,7 +521,7 @@ def predict(image_path, model, topk=5):
 
 Now that you can use a trained model for predictions, check to make sure it makes sense. Even if the testing accuracy is high, it's always good to check that there aren't obvious bugs. Use `matplotlib` to plot the probabilities for the top 5 classes as a bar graph, along with the input image. It should look like this:
 
-<img src='./final_project/assets/Flowers.pngassets/inference_example.png' width=300px>
+<img src='./final_project/assets/inference_example.png' width=300px>
 
 You can convert from the class integer encoding to actual flower names with the `cat_to_name.json` file (should have been loaded earlier in the notebook). To show a PyTorch tensor as an image, use the `imshow` function defined above.
 
@@ -527,7 +545,7 @@ names = list(map(lambda x: cat_to_name[f"{idx_to_class[x]}"], idxs))
 
 # Display top 5 most probable flower categories                               
 y_pos = np.arange(len(names))
-plt.barh(y_pos, probs, align='center')
+plt.barh(y_pos, probs)
 plt.yticks(y_pos, names)
 plt.gca().invert_yaxis()
  
