@@ -12,7 +12,7 @@ from train import build_network
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--checkpoint', help="path to checkpoint", default='./checkpoint.pt')
-parser.add_argument('-', '--image', help="image path", default='/85/image_04805.jpg')
+parser.add_argument('-', '--image', help="image path", default='./flowers/test/85/image_04805.jpg')
 parser.add_argument('-l', '--lables', help="JSON category mappings", default=None)
 parser.add_argument('-g', '--gpu', default=True)
 args = parser.parse_args()
@@ -93,27 +93,31 @@ def predict(image_path, model, topk=5):
 
 test_image_path = args.image
 test_image_name = test_image_path.split('/')[-2]
+
+print('using device:', device)
 # Get the probabilties and indices from passing the image through the model
 probs, idxs = predict(test_image_path, loaded_model)
+
+# Swap the keys and values in class_to_idx so that
+# indices can be mapped to original classes in dataset
+idx_to_class = {v: k for k, v in loaded_model.class_to_idx.items()}
 
 if args.lables != None:
     with open('cat_to_name.json', 'r') as f:
         cat_to_name = json.load(f)
     
     test_image_name = cat_to_name[f"{test_image_name}"]
-    
-    # Swap the keys and values in class_to_idx so that
-    # indices can be mapped to original classes in dataset
-    idx_to_class = {v: k for k, v in loaded_model.class_to_idx.items()}
 
     # Map the classes to flower category lables                              
     idxs = list(map(lambda x: cat_to_name[f"{idx_to_class[x]}"], idxs))
+else:
+    idxs = list(map(lambda x: idx_to_class[x], idxs))
 
 topk = zip(idxs, probs)
 
-print("Actual class:", test_image_name)
+print("\nActual class:", test_image_name)
 
 print("\n---Top 5 predictions---")
 
 for i in topk:
-    print(f"{i[0]}: {i[1] * 100}%")
+    print(f"{i[0]}: {i[1] * 100} %")
