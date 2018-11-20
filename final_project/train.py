@@ -26,9 +26,9 @@ def build_network(archit="vgg16", out_features=102, hidden_layers=[1000]):
     
     # Define how to build a hidden layer
     layer_builder = (
-        lambda i, v: (f"drop{i}", nn.Dropout()), 
         lambda i, v: (f"fc{i}", nn.Linear(hidden_layers[i-1], v)),
         lambda i, v: (f"relu{i}", nn.ReLU()),
+        lambda i, v: (f"drop{i}", nn.Dropout())
     )
     
     # Loop through hidden_layers array and build a layer for each
@@ -188,7 +188,7 @@ def main():
     model.class_to_idx = image_datasets['train'].class_to_idx
 
     checkpoint = {
-        "arch": "vgg16",
+        "arch": arch,
         "class_to_idx": model.class_to_idx,
         'state_dict': model.state_dict(),
         "hidden_layers": [args.hidden_layers]

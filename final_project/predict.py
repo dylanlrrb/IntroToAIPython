@@ -106,7 +106,7 @@ probs, idxs = predict(test_image_path, loaded_model, topk=args.topk)
 idx_to_class = {v: k for k, v in loaded_model.class_to_idx.items()}
 
 if args.lables != None:
-    with open('cat_to_name.json', 'r') as f:
+    with open(args.lables, 'r') as f:
         cat_to_name = json.load(f)
 
     # Map the classes to flower category lables                              
