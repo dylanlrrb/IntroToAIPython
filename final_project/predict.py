@@ -45,21 +45,30 @@ def process_image(image_path):
     ''' Scales, crops, and normalizes a PIL image for a PyTorch model,
         returns an Numpy array
     '''
-    # Define same transforms that are used in training images
-    load_transforms = transforms.Compose([transforms.Resize(255),
-                                     transforms.CenterCrop(224),
-                                     transforms.ToTensor()])
-    # open the image
+    # Open the image
     pil_image = Image.open(image_path)
-    # transform the image
-    transformed_pil_image = load_transforms(pil_image)
-    # Turn into np_array
-    np_image = np.array(transformed_pil_image)
     
-    # undo mean and std then transpose
+    # Resize the image
+    if pil_image.size[1] < pil_image.size[0]:
+        pil_image.thumbnail((255, math.pow(255, 2)))
+    else:
+        pil_image.thumbnail((math.pow(255, 2), 255))
+                            
+    # Crop the image
+    left = (pil_image.width-224)/2
+    bottom = (pil_image.height-224)/2
+    right = left + 224
+    top = bottom + 224
+                            
+    pil_image = pil_image.crop((left, bottom, right, top))
+                            
+    # Turn into np_array
+    np_image = np.array(pil_image)/255
+    
+    # Undo mean and std then transpose
     mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    np_image = (np.transpose(np_image, (1, 2, 0)) - mean)/std    
+    std = np.array([0.229, 0.224, 0.225])  
+    np_image = (np_image - mean)/std
     np_image = np.transpose(np_image, (2, 0, 1))
     
     return np_image

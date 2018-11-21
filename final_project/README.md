@@ -34,6 +34,10 @@ from torch import optim
 import torch.nn.functional as F
 from torchvision import datasets, transforms, models
 from collections import OrderedDict
+from PIL import Image
+import numpy as np
+import json
+import math
 ```
 
 ## Load the data
@@ -96,8 +100,6 @@ You'll also need to load in a mapping from category label to category name. You 
 
 
 ```python
-import json
-
 with open('cat_to_name.json', 'r') as f:
     cat_to_name = json.load(f)
 ```
@@ -141,9 +143,9 @@ def build_network(arch="vgg16", out_features=102, hidden_layers=[1000]):
     
     # Define how to build a hidden layer
     layer_builder = (
-        lambda i, v: (f"drop{i}", nn.Dropout()), 
         lambda i, v: (f"fc{i}", nn.Linear(hidden_layers[i-1], v)),
         lambda i, v: (f"relu{i}", nn.ReLU()),
+        lambda i, v: (f"drop{i}", nn.Dropout())
     )
     
     # Loop through hidden_layers array and build a layer for each
@@ -162,6 +164,10 @@ def build_network(arch="vgg16", out_features=102, hidden_layers=[1000]):
 model = build_network()
 print(model)
 ```
+
+    Downloading: "https://download.pytorch.org/models/vgg16-397923af.pth" to /root/.torch/models/vgg16-397923af.pth
+    100%|██████████| 553433881/553433881 [00:25<00:00, 21830521.34it/s]
+
 
     VGG(
       (features): Sequential(
@@ -198,9 +204,9 @@ print(model)
         (30): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
       )
       (classifier): Sequential(
-        (drop1): Dropout(p=0.5)
         (fc1): Linear(in_features=25088, out_features=1000, bias=True)
         (relu1): ReLU()
+        (drop1): Dropout(p=0.5)
         (fc_final): Linear(in_features=1000, out_features=102, bias=True)
         (output): LogSoftmax()
       )
@@ -245,7 +251,7 @@ def train(model, criterion, optimizer, traning_set, testing_set, epochs=5, log_f
         
         for images, labels in traning_set:
             batch += 1
-            
+
             images = images.to(device)
             labels = labels.to(device)
 
@@ -292,21 +298,21 @@ print("trained")
 ```
 
     begin training
-    Epoch: 1 of 3,  Train Loss: 3.967,  Test Loss: 2.590,  Accuracy: %44.7
-    Epoch: 1 of 3,  Train Loss: 2.404,  Test Loss: 1.356,  Accuracy: %63.4
-    Epoch: 1 of 3,  Train Loss: 1.763,  Test Loss: 1.098,  Accuracy: %68.9
-    Epoch: 1 of 3,  Train Loss: 1.523,  Test Loss: 0.879,  Accuracy: %76.4
-    Epoch: 1 of 3,  Train Loss: 1.473,  Test Loss: 0.782,  Accuracy: %78.0
-    Epoch: 2 of 3,  Train Loss: 1.198,  Test Loss: 0.727,  Accuracy: %80.8
-    Epoch: 2 of 3,  Train Loss: 1.079,  Test Loss: 0.628,  Accuracy: %82.5
-    Epoch: 2 of 3,  Train Loss: 1.102,  Test Loss: 0.611,  Accuracy: %83.5
-    Epoch: 2 of 3,  Train Loss: 1.083,  Test Loss: 0.502,  Accuracy: %86.6
-    Epoch: 2 of 3,  Train Loss: 0.992,  Test Loss: 0.520,  Accuracy: %86.9
-    Epoch: 3 of 3,  Train Loss: 1.018,  Test Loss: 0.485,  Accuracy: %86.1
-    Epoch: 3 of 3,  Train Loss: 0.887,  Test Loss: 0.573,  Accuracy: %84.0
-    Epoch: 3 of 3,  Train Loss: 0.943,  Test Loss: 0.522,  Accuracy: %85.2
-    Epoch: 3 of 3,  Train Loss: 0.818,  Test Loss: 0.451,  Accuracy: %87.7
-    Epoch: 3 of 3,  Train Loss: 0.900,  Test Loss: 0.478,  Accuracy: %87.4
+    Epoch: 1 of 3,  Train Loss: 4.427,  Test Loss: 2.864,  Accuracy: %34.9
+    Epoch: 1 of 3,  Train Loss: 3.007,  Test Loss: 1.859,  Accuracy: %55.8
+    Epoch: 1 of 3,  Train Loss: 2.526,  Test Loss: 1.363,  Accuracy: %65.6
+    Epoch: 1 of 3,  Train Loss: 2.157,  Test Loss: 1.120,  Accuracy: %70.6
+    Epoch: 1 of 3,  Train Loss: 1.937,  Test Loss: 0.911,  Accuracy: %77.7
+    Epoch: 2 of 3,  Train Loss: 1.725,  Test Loss: 0.810,  Accuracy: %79.7
+    Epoch: 2 of 3,  Train Loss: 1.665,  Test Loss: 0.737,  Accuracy: %80.5
+    Epoch: 2 of 3,  Train Loss: 1.552,  Test Loss: 0.787,  Accuracy: %78.3
+    Epoch: 2 of 3,  Train Loss: 1.555,  Test Loss: 0.648,  Accuracy: %82.0
+    Epoch: 2 of 3,  Train Loss: 1.558,  Test Loss: 0.668,  Accuracy: %82.9
+    Epoch: 3 of 3,  Train Loss: 1.467,  Test Loss: 0.561,  Accuracy: %86.2
+    Epoch: 3 of 3,  Train Loss: 1.313,  Test Loss: 0.596,  Accuracy: %83.9
+    Epoch: 3 of 3,  Train Loss: 1.353,  Test Loss: 0.541,  Accuracy: %84.5
+    Epoch: 3 of 3,  Train Loss: 1.297,  Test Loss: 0.505,  Accuracy: %87.0
+    Epoch: 3 of 3,  Train Loss: 1.284,  Test Loss: 0.524,  Accuracy: %86.0
     trained
 
 
@@ -323,7 +329,7 @@ print("Accuracy on test dataset: %{:.1f}".format(accuracy*100))
 ```
 
     Network preformance on test dataset-------------
-    Accuracy on test dataset: %83.8
+    Accuracy on test dataset: %83.5
 
 
 ## Save the checkpoint
@@ -408,28 +414,34 @@ And finally, PyTorch expects the color channel to be the first dimension but it'
 
 
 ```python
-from PIL import Image
-import numpy as np
-
 def process_image(image_path):
     ''' Scales, crops, and normalizes a PIL image for a PyTorch model,
         returns an Numpy array
     '''
-    # Define same transforms that are used in training images
-    load_transforms = transforms.Compose([transforms.Resize(255),
-                                     transforms.CenterCrop(224),
-                                     transforms.ToTensor()])
-    # open the image
+    # Open the image
     pil_image = Image.open(image_path)
-    # transform the image
-    transformed_pil_image = load_transforms(pil_image)
-    # Turn into np_array
-    np_image = np.array(transformed_pil_image)
     
-    # undo mean and std then transpose
+    # Resize the image
+    if pil_image.size[1] < pil_image.size[0]:
+        pil_image.thumbnail((255, math.pow(255, 2)))
+    else:
+        pil_image.thumbnail((math.pow(255, 2), 255))
+                            
+    # Crop the image
+    left = (pil_image.width-224)/2
+    bottom = (pil_image.height-224)/2
+    right = left + 224
+    top = bottom + 224
+                            
+    pil_image = pil_image.crop((left, bottom, right, top))
+                            
+    # Turn into np_array
+    np_image = np.array(pil_image)/255
+    
+    # Undo mean and std then transpose
     mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    np_image = (np.transpose(np_image, (1, 2, 0)) - mean)/std    
+    std = np.array([0.229, 0.224, 0.225])  
+    np_image = (np_image - mean)/std
     np_image = np.transpose(np_image, (2, 0, 1))
     
     return np_image
@@ -521,7 +533,7 @@ def predict(image_path, model, topk=5):
 
 Now that you can use a trained model for predictions, check to make sure it makes sense. Even if the testing accuracy is high, it's always good to check that there aren't obvious bugs. Use `matplotlib` to plot the probabilities for the top 5 classes as a bar graph, along with the input image. It should look like this:
 
-<img src='assets/inference_example.png' width=300px>
+<img src='./assets/inference_example.png' width=300px>
 
 You can convert from the class integer encoding to actual flower names with the `cat_to_name.json` file (should have been loaded earlier in the notebook). To show a PyTorch tensor as an image, use the `imshow` function defined above.
 
