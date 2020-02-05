@@ -5,6 +5,9 @@
 flowers/
 checkpoint.pt
 
+container_cache/*/*
+!container_cache/**/README.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

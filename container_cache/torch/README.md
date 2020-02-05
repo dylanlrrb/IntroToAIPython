@@ -1,0 +1,1 @@
+Use this directory to mount to locations that pytorch caches pre-trained models so it doesn't have to re-download every time the container is removed
