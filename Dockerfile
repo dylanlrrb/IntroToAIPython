@@ -6,7 +6,7 @@ RUN apt-get update
 
 RUN apt-get install software-properties-common -y
 
-RUN add-apt-repository ppa:deadsnakes/ppa
+RUN add-apt-repository ppa:deadsnakes/ppa -y
 
 RUN apt-get update
 
