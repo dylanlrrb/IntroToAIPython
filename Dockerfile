@@ -18,6 +18,8 @@ EXPOSE 8889
 # docker run --gpus all --rm -p 8889:8889 -v (pwd)/final_project:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints --name jp-test cuda-test
 # remove after stopping
 # cache pre-trained models for use between containers
+# docker build -t cuda-test . 
 
 CMD ["jupyter", "nbconvert", "--to", "html", "--ExecutePreprocessor.timeout=180000", "--execute", "Image_Classifier_Project.ipynb", "--output=result.html"]
 # docker run --gpus all --rm -p 8889:8889 -v (pwd)/final_project:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints --name result-test cuda-head
+# docker build -t cuda-head .
