@@ -1,2 +1,3 @@
 # models pulled down dont have the correct permissions
+# ignore them
 container_cache/*/*

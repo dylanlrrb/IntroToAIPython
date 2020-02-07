@@ -31,8 +31,11 @@ EXPOSE 8889
 CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=180000 --execute Image_Classifier_Project.ipynb --output=notebook.html
 # CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=180000 --execute <notebook_to_execute>.ipynb --output=notebook.html
 
+# docker build -t intro_ai .
 # docker build -t <image-name> .
-# docker run --gpus all --rm -p 8889:8889 -v (pwd)/final_project:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints <image-name>
+
+# docker run --gpus all --rm -p 8889:8889 -v (pwd)/final_project:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints intro_ai
+# docker run --gpus all --rm -p 8889:8889 -v (pwd)/<dir-containing-ipynb>:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints <image-name>
 
 # remove after stopping
 # cache pre-trained models for use between containers
