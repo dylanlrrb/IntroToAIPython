@@ -19,5 +19,5 @@ EXPOSE 8889
 # remove after stopping
 # cache pre-trained models for use between containers
 
-CMD ["jupyter", "nbconvert", "--to", "notebook", "--execute", "Image_Classifier_Project.ipynb", "--output=result.ipynb"]
+CMD ["jupyter", "nbconvert", "--to", "html", "--ExecutePreprocessor.timeout=180000", "--execute", "Image_Classifier_Project.ipynb", "--output=result.html"]
 # docker run --gpus all --rm -p 8889:8889 -v (pwd)/final_project:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints --name result-test cuda-head

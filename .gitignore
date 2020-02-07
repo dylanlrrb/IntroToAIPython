@@ -4,9 +4,10 @@
 # Large directories used for storing training images
 flowers/
 checkpoint.pt
-
+# CDCI pipeline stuff
 container_cache/*/*
 !container_cache/**/README.md
+result.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
