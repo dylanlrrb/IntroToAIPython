@@ -26,10 +26,12 @@ RUN pip install -r src/requirements.txt
 
 WORKDIR /src
 
-EXPOSE 8889
+# Ony need to Expose this port if you want to run the notebook with
+# CMD jupyter notebook --no-browser --ip=0.0.0.0 --port=8889
+# EXPOSE 8889
 
-CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=180000 --execute Image_Classifier_Project.ipynb --output=notebook.html
-# CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=180000 --execute <notebook_to_execute>.ipynb --output=notebook.html
+CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute Image_Classifier_Project.ipynb --output=notebook.html
+# CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute <notebook_to_execute>.ipynb --output=notebook.html
 
 # docker build -t intro_ai .
 # docker build -t <image-name> .
