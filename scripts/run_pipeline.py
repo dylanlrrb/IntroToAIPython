@@ -39,6 +39,7 @@ def tags_to_build ():
 
 def build_tag(tag):
   call(['git', 'checkout', f'build_{tag}'])
+  call(['bash', 'scripts/build_image.sh', f'Hell000 {tag}'])
 
 def push_tag (tag):
   pass
@@ -46,7 +47,6 @@ def push_tag (tag):
 # ------------------------------------------------
 
 if __name__ == "__main__":
-
   # # fetch dataset (accept dataset url and dataset destination)
   verify_and_download()
 
