@@ -12,9 +12,11 @@ def filter_by_dir_name(s3_object):
   else:
     return False
 
+
 def extract_child_dirs(s3_object):
   path = s3_object.key.split('/')
   return path[1]
+
 
 def tags_to_build ():
   s3 = boto3.resource('s3')
@@ -26,7 +28,7 @@ def tags_to_build ():
   bucket_contents = set(bucket_contents)
   print('tags in S3', bucket_contents)
 
-  local_tags = check_output(['git', 'tag', '-l', 'build*'])
+  local_tags = check_output(['git', 'tag', '-l', 'build_*'])
   local_tags = local_tags.decode("utf-8").strip().split('\n')
   local_tags = map(lambda x: x.strip('build_'), local_tags)
   local_tags = set(local_tags)
@@ -37,26 +39,34 @@ def tags_to_build ():
 
   return [*intersection]
 
+
 def build_tag(tag):
-  call(['git', 'checkout', f'build_{tag}'])
-  call(['bash', 'scripts/build_image.sh', f'Hell000 {tag}'])
+  # call(['git', 'checkout', f'build_{tag}'])
+  # clear out build products
+  call(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, f'Hell000 {tag}'])
+  # your current tags point to commits where these files don't exist
+  # update the tag locations or comment out the checking out step for now
+
 
 def push_tag (tag):
+  # clear out build products
+  # PUSH WITH CORRECT PERMISSIONS
   pass
+
 
 # ------------------------------------------------
 
 if __name__ == "__main__":
-  # # fetch dataset (accept dataset url and dataset destination)
-  verify_and_download()
 
   # # run tag analyzer (accept s3 url)
   tags = tags_to_build()
 
   for tag in tags:
     print(tag)
+    # fetch dataset at this commit if not cached already
+    verify_and_download()
     build_tag(tag)
-    # invole push script (accept tag name)
+    # invoke push script (accept tag name)
 
   call(['git', 'checkout', 'master'])
 
