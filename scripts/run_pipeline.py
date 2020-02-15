@@ -1,9 +1,10 @@
 import boto3
 import constants
-from  os import path
+from  os import path, remove
 from subprocess import call, check_output
 from get_dataset import verify_and_download
 
+# This script assupes you have the package 'boto3' installed and accessible from here
 
 def filter_by_dir_name(s3_object):
   if s3_object.key.find(constants.S3_BUCKET_DIR) > -1:
@@ -42,16 +43,26 @@ def tags_to_build ():
 
 def build_tag(tag):
   # call(['git', 'checkout', f'build_{tag}'])
-  # clear out build products
+  # Remove any previous build products, if they exist
+  for file in constants.BUILLD_PRODUCTS:
+    try:
+      remove(f'{constants.WORKING_DIR}/{file}')
+    except FileNotFoundError:
+      pass
+    
   call(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, f'Hell000 {tag}'])
   # your current tags point to commits where these files don't exist
   # update the tag locations or comment out the checking out step for now
 
 
 def push_tag (tag):
-  # clear out build products
-  # PUSH WITH CORRECT PERMISSIONS
-  pass
+  # PUSH to S3 WITH CORRECT PERMISSIONS
+  # Remove any previous build products
+  for file in constants.BUILLD_PRODUCTS:
+    try:
+      remove(f'{constants.WORKING_DIR}/{file}')
+    except FileNotFoundError:
+      pass
 
 
 # ------------------------------------------------
@@ -69,8 +80,3 @@ if __name__ == "__main__":
     # invoke push script (accept tag name)
 
   call(['git', 'checkout', 'master'])
-
-# Prefix a tag with "build_" then the version number
-# suffix with "_<rebuild number>" to trigger a rebuild on a particular commit
-# "git push origin master --tags" to push the tags up to github to be pulled down later
-# git tag -l "build*" to list all tags that match the pattern
