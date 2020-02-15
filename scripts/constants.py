@@ -1,0 +1,5 @@
+S3_BUCKET = 'built-model-repository'
+S3_BUCKET_DIR = 'intro_to_ai_python'
+DATASET_URL = 'https://s3-us-west-2.amazonaws.com/datasets-349058029/IntroToAIPython/flowers.zip'
+DATASET_DESTINATION = 'src/flowers'
+PYTHON_VERSION = 'python3.6'

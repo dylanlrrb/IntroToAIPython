@@ -36,7 +36,7 @@ CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute Ima
 # docker build -t intro_ai .
 # docker build -t <image-name> .
 
-# docker run --gpus all --rm -p 8889:8889 -v (pwd)/final_project:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints intro_ai
+# docker run --gpus all --rm -p 8889:8889 -v (pwd)/src:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints intro_ai
 # docker run --gpus all --rm -p 8889:8889 -v (pwd)/<dir-containing-ipynb>:/src -v (pwd)/container_cache/torch:/root/.cache/torch/checkpoints <image-name>
 
 # remove after stopping
