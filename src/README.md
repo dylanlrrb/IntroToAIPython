@@ -565,11 +565,11 @@ plt.show()
 ```
 
 
-![png](output_25_0.png)
+![png](../output_25_0.png)
 
 
 
-![png](output_25_1.png)
+![png](../output_25_1.png)
 
 
 

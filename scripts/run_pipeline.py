@@ -11,13 +11,12 @@ tags = tags_to_build()
 
 for tag in tags:
   print(tag)
-  build_tag(f'build_{tag}')
-  # invoke the build scripts (accept tag name)
-  # invole push script (accept tag name, s3 url)
+  build_tag(tag)
+  # invole push script (accept tag name)
 
 call(['git', 'checkout', 'master'])
 
-# Prefix a tag with "build_" then the version
+# Prefix a tag with "build_" then the version number
 # suffix with "_<rebuild number>" to trigger a rebuild on a particular commit
 # "git push origin master --tags" to push the tags up to github to be pulled down later
 # git tag -l "build*" to list all tags that match the pattern
