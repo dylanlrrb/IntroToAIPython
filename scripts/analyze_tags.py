@@ -19,5 +19,5 @@ def tags_to_build ():
   bucket_contents = [*my_bucket.objects.all()]
   bucket_contents = filter(filter_by_dir_name, bucket_contents)
   bucket_contents = map(extract_child_dirs, bucket_contents)
-  print([*set(bucket_contents)])
+  print('tags in S3', [*set(bucket_contents)])
   return True
