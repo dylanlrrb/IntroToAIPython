@@ -11,3 +11,5 @@ def verify_and_download ():
   else:
     print('specified dataset already exists.')
 
+if __name__ == "__main__":
+  verify_and_download()
