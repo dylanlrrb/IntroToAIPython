@@ -3,7 +3,6 @@
 
 # Large directories used for storing training images
 flowers/
-flowerss/
 checkpoint.pt
 # CDCI pipeline stuff
 container_cache/*/*
