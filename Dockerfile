@@ -1,6 +1,6 @@
 FROM nvidia/cuda:9.0-base
 
-ENV PYTHON_VERSION python3.6
+ARG PYTHON_VERSION=python3.6
 
 RUN apt-get update
 
@@ -24,13 +24,18 @@ COPY ./requirements.txt /src
 
 RUN pip install -r src/requirements.txt
 
+ARG NOTEBOOK_NAME=notebook.ipynb
+# ARGs are only evaluated at build time
+# store in an envirlnment variable so it can be used at run time
+ENV NOTEBOOK_TITLE ${NOTEBOOK_NAME}
+
 WORKDIR /src
 
 # Ony need to Expose this port if you want to run the notebook with
 # CMD jupyter notebook --no-browser --ip=0.0.0.0 --port=8889
 # EXPOSE 8889
 
-CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute Image_Classifier_Project.ipynb --output=notebook.html
+CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute ${NOTEBOOK_TITLE} --output=notebook.html
 # CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute <notebook_to_execute>.ipynb --output=notebook.html
 
 # docker build -t intro_ai .

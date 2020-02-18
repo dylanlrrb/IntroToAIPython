@@ -43,23 +43,22 @@ def tags_to_build ():
 
 
 def build_tag(tag):
-  call(['git', '-c', 'advice.detachedHead=false', 'checkout', f'{constants.BUILD_TAG_PREFIX}{tag}'])
+  # call(['git', '-c', 'advice.detachedHead=false', 'checkout', f'{constants.BUILD_TAG_PREFIX}{tag}'])
   # fetch dataset at this commit if not cached already
   verify_and_download()
   # Remove any previous build products, if they exist
-  for file in constants.BUILLD_PRODUCTS:
+  for file in constants.BUILD_PRODUCTS:
     try:
       remove(f'{constants.WORKING_DIR}/{file}')
     except FileNotFoundError:
       print(f'{constants.WORKING_DIR}/{file} already removed')
-    
-  call(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, f'Hell000 {tag}'])
+  call(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, constants.NOTEBOOK_NAME, constants.DOCKER_IMAGE_NAME])
 
 
 def push_tag (tag):
   # PUSH to S3 WITH CORRECT PERMISSIONS
   # Remove any previous build products
-  for file in constants.BUILLD_PRODUCTS:
+  for file in constants.BUILD_PRODUCTS:
     try:
       remove(f'{constants.WORKING_DIR}/{file}')
     except FileNotFoundError:
