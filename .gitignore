@@ -2,7 +2,7 @@
 .vscode/
 
 # Large directories used for storing training images
-flowers/
+datasets/
 checkpoint.pt
 # CDCI pipeline stuff
 container_cache/*/*

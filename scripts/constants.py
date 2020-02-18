@@ -1,4 +1,4 @@
-WORKING_DIR = 'src'
+WORKING_DIR = 'src/datasets'
 BUILD_TAG_PREFIX = 'build_'
 S3_BUCKET = 'built-model-repository'
 S3_BUCKET_DIR = 'intro_to_ai_python'
