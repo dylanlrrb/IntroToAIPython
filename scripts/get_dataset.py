@@ -21,7 +21,7 @@ def verify_and_download ():
           'unzip',
           f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}.zip',
           '-d',
-          f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}'
+          f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}'
         ])
         call([
           'rm',
