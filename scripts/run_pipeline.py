@@ -32,6 +32,7 @@ def tags_to_build ():
   local_tags = check_output(['git', 'tag', '-l', f'{constants.BUILD_TAG_PREFIX}*'])
   local_tags = local_tags.decode("utf-8").strip().split('\n')
   local_tags = map(lambda x: x.strip(constants.BUILD_TAG_PREFIX), local_tags)
+  local_tags = filter(lambda x: len(x) > 0, local_tags)
   local_tags = set(local_tags)
   print('local_tags', local_tags)
 
@@ -51,8 +52,6 @@ def build_tag(tag):
       print(f'{constants.WORKING_DIR}/{file} already removed')
     
   call(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, f'Hell000 {tag}'])
-  # your current tags point to commits where these files don't exist
-  # update the tag locations or comment out the checking out step for now
 
 
 def push_tag (tag):
