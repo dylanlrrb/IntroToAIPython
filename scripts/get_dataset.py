@@ -13,8 +13,8 @@ def verify_and_download ():
         print(f'dataset "{DATASET_DESTINATION}/" does not exist, downloading...')
         print('curl', '-o', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', DATASET_URL, '--create-dirs')
         call(['curl', '-o', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', DATASET_URL, '--create-dirs'])
-        print('unzip', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', '-d', constants.WORKING_DIR)
-        call(['unzip', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', '-d', constants.WORKING_DIR])
+        print('unzip', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', '-d', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}')
+        call(['unzip', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', '-d', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}'])
         print('rm', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip')
         call(['rm', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip'])
       else:
