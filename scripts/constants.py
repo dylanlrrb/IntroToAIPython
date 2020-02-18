@@ -9,6 +9,5 @@ VOLUME_MAPPINGS = {
   '/container_cache/torch': '/root/.cache/torch/checkpoints'
 }
 BUILLD_PRODUCTS = ['checkpoint.pt', 'notebook.html']
-# use to customize what products to clear out 
 
 # I'd like to figure out a way to move this file to the root of the project raterh than in the scripts file

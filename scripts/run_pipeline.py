@@ -29,9 +29,9 @@ def tags_to_build ():
   bucket_contents = set(bucket_contents)
   print('tags in S3', bucket_contents)
 
-  local_tags = check_output(['git', 'tag', '-l', 'build_*'])
+  local_tags = check_output(['git', 'tag', '-l', f'{constants.BUILD_TAG_PREFIX}*'])
   local_tags = local_tags.decode("utf-8").strip().split('\n')
-  local_tags = map(lambda x: x.strip('build_'), local_tags)
+  local_tags = map(lambda x: x.strip(constants.BUILD_TAG_PREFIX), local_tags)
   local_tags = set(local_tags)
   print('local_tags', local_tags)
 
@@ -42,13 +42,13 @@ def tags_to_build ():
 
 
 def build_tag(tag):
-  # call(['git', 'checkout', f'build_{tag}'])
+  # call(['git', 'checkout', f'{constants.BUILD_TAG_PREFIX}{tag}'])
   # Remove any previous build products, if they exist
   for file in constants.BUILLD_PRODUCTS:
     try:
       remove(f'{constants.WORKING_DIR}/{file}')
     except FileNotFoundError:
-      pass
+      print(f'{constants.WORKING_DIR}/{file} already removed')
     
   call(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, f'Hell000 {tag}'])
   # your current tags point to commits where these files don't exist
@@ -62,7 +62,7 @@ def push_tag (tag):
     try:
       remove(f'{constants.WORKING_DIR}/{file}')
     except FileNotFoundError:
-      pass
+      print(f'{constants.WORKING_DIR}/{file} already removed')
 
 
 # ------------------------------------------------
