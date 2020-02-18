@@ -44,6 +44,8 @@ def tags_to_build ():
 
 def build_tag(tag):
   call(['git', '-c', 'advice.detachedHead=false', 'checkout', f'{constants.BUILD_TAG_PREFIX}{tag}'])
+  # fetch dataset at this commit if not cached already
+  verify_and_download()
   # Remove any previous build products, if they exist
   for file in constants.BUILLD_PRODUCTS:
     try:
@@ -74,8 +76,6 @@ if __name__ == "__main__":
   for tag in tags:
     print(f'Now checking out and building tag labled {tag}')
     build_tag(tag)
-    # fetch dataset at this commit if not cached already
-    verify_and_download()
     # invoke push script (accept tag name)
     print('----------------------')
   print('Returning to master branch')
