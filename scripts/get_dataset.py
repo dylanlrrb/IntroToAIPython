@@ -11,8 +11,8 @@ def verify_and_download ():
       if not path_already_exists:
         print ('DATASET_URL, DATASET_DESTINATION', DATASET_URL, DATASET_DESTINATION)
         print(f'dataset "{DATASET_DESTINATION}/" does not exist, downloading...')
-        print('curl', '-o', '--create-dirs', f'{constants.WORKING_DIR}/{DATASET_DESTINATION}.zip', DATASET_URL)
-        call(['curl', '-o', '--create-dirs', f'{constants.WORKING_DIR}/{DATASET_DESTINATION}.zip', DATASET_URL])
+        print('curl', '-o', f'{constants.WORKING_DIR}/{DATASET_DESTINATION}.zip', DATASET_URL, '--create-dirs')
+        call(['curl', '-o', f'{constants.WORKING_DIR}/{DATASET_DESTINATION}.zip', DATASET_URL, '--create-dirs'])
         print('unzip', f'{constants.WORKING_DIR}/{DATASET_DESTINATION}.zip', '-d', constants.WORKING_DIR)
         call(['unzip', f'{constants.WORKING_DIR}/{DATASET_DESTINATION}.zip', '-d', constants.WORKING_DIR])
         print('rm', f'{constants.WORKING_DIR}/{DATASET_DESTINATION}.zip')
