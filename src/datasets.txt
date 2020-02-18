@@ -1,2 +1,2 @@
-https://datasets-349058029.s3-us-west-2.amazonaws.com/IntroToAIPython/flowers2.zip v2
-https://datasets-349058029.s3-us-west-2.amazonaws.com/IntroToAIPython/screenshot.zip v1
+https://datasets-349058029.s3-us-west-2.amazonaws.com/IntroToAIPython/flowers2.zip flowers v2
+https://datasets-349058029.s3-us-west-2.amazonaws.com/IntroToAIPython/screenshot.zip __MACOSX v1

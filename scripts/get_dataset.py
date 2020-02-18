@@ -5,20 +5,18 @@ import constants
 def verify_and_download ():
   with open(f'{constants.WORKING_DIR}/datasets.txt', 'r') as file:
     for line in file.readlines():
-      DATASET_URL, DATASET_DESTINATION = line.strip().split(' ')
-      print(f'checking if required dataset "{DATASET_DESTINATION}/" exists.')
-      path_already_exists = path.isdir(f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}')
+      DATASET_URL, UNCOMPRESSED_DATASET_NAME, DATASET_VERSION = line.strip().split(' ')
+      print(f'checking if required dataset "{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}" exists.')
+      path_already_exists = path.isdir(f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}')
       if not path_already_exists:
-        print ('DATASET_URL, DATASET_DESTINATION', DATASET_URL, DATASET_DESTINATION)
-        print(f'dataset "{DATASET_DESTINATION}/" does not exist, downloading...')
-        print('curl', '-o', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', DATASET_URL, '--create-dirs')
-        call(['curl', '-o', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', DATASET_URL, '--create-dirs'])
-        print('unzip', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', '-d', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}')
-        call(['unzip', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip', '-d', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}'])
-        print('rm', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip')
-        call(['rm', f'{constants.WORKING_DIR}/datasets/{DATASET_DESTINATION}.zip'])
+        print ('DATASET_URL, DATASET_VERSION', DATASET_URL, DATASET_VERSION)
+        print(f'dataset "{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}" does not exist, downloading...')
+        call(['curl', '-o', 'temp.zip', DATASET_URL, '--create-dirs'])
+        call(['unzip', 'temp.zip', '-d', f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}'])
+        print('rm', 'temp.zip')
+        call(['rm', 'temp.zip'])
       else:
-        print(f'specified dataset "{DATASET_DESTINATION}/" already exists.')
+        print(f'specified dataset "{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}" already exists.')
 
 if __name__ == "__main__":
   verify_and_download()
