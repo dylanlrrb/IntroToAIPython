@@ -8,7 +8,7 @@ VOLUME_MAPPINGS = [
   '/src:/src',
   '/container_cache/torch:/root/.cache/torch/checkpoints'
 ]
-BUILD_PRODUCTS = ['checkpoint.pt', 'notebook.html']
+BUILD_PRODUCTS = ['checkpoint.pt', 'index.html']
 NOTEBOOK_NAME = 'Image_Classifier_Project.ipynb'
 
 # I'd like to figure out a way to move this file to the root of the project raterh than in the scripts file

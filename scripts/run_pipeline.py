@@ -1,10 +1,14 @@
 import boto3
 import constants
 from  os import path, remove
+import sys
+import traceback
+from datetime import datetime
 from subprocess import call, check_output
 from get_dataset import verify_and_download
 
-# This script assupes you have the package 'boto3' installed and accessible from here
+# This script assumes you have the package 'boto3' installed and accessible from here
+s3_client = boto3.client('s3')
 
 def filter_by_dir_name(s3_object):
   if s3_object.key.find(constants.S3_BUCKET_DIR) > -1:
@@ -17,6 +21,12 @@ def filter_by_dir_name(s3_object):
 def extract_child_dirs(s3_object):
   path = s3_object.key.split('/')
   return path[1]
+
+def try_to_remove(file):
+  try:
+    remove(f'{constants.WORKING_DIR}/{file}')
+  except FileNotFoundError:
+    print(f'{constants.WORKING_DIR}/{file} already removed or does not exist')
 
 
 def tags_to_build ():
@@ -43,39 +53,65 @@ def tags_to_build ():
 
 
 def build_tag(tag):
-  # call(['git', '-c', 'advice.detachedHead=false', 'checkout', f'{constants.BUILD_TAG_PREFIX}{tag}'])
+  call(['git', '-c', 'advice.detachedHead=false', 'checkout', f'{constants.BUILD_TAG_PREFIX}{tag}'])
   # fetch dataset at this commit if not cached already
   verify_and_download()
-  # Remove any previous build products, if they exist
   for file in constants.BUILD_PRODUCTS:
-    try:
-      remove(f'{constants.WORKING_DIR}/{file}')
-    except FileNotFoundError:
-      print(f'{constants.WORKING_DIR}/{file} already removed')
-  call(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, constants.NOTEBOOK_NAME, constants.DOCKER_IMAGE_NAME])
-
+    try_to_remove(file)
+  out = check_output(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, constants.NOTEBOOK_NAME, constants.DOCKER_IMAGE_NAME, *constants.VOLUME_MAPPINGS])
+  print(out)
 
 def push_tag (tag):
-  # PUSH to S3 WITH CORRECT PERMISSIONS
-  # Remove any previous build products
   for file in constants.BUILD_PRODUCTS:
-    try:
-      remove(f'{constants.WORKING_DIR}/{file}')
-    except FileNotFoundError:
-      print(f'{constants.WORKING_DIR}/{file} already removed')
+    extra_args = {
+        'ACL': 'public-read',
+      }
+    if file == 'index.html':
+      extra_args = {
+        'ACL': 'public-read',
+        'ContentType': 'text/html',
+        'ContentDisposition': 'inline'
+      }
+
+    s3_client.upload_file(
+      f'{constants.WORKING_DIR}/{file}',
+      constants.S3_BUCKET,
+      f'{constants.S3_BUCKET_DIR}/{tag}/{file}',
+      ExtraArgs=extra_args
+    )
+    
+    try_to_remove(file)
 
 
 # ------------------------------------------------
 
 if __name__ == "__main__":
+  dt_string = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+  print('<<<<<<<<< START OF EXECUTION >>>>>>>>>  ', dt_string)	
 
-  # # run tag analyzer (accept s3 url)
-  tags = tags_to_build()
+  for tag in tags_to_build():
+    try:
+      print(f'Now checking out and building tag labled {tag}')
+      
+      build_tag(tag)
 
-  for tag in tags:
-    print(f'Now checking out and building tag labled {tag}')
-    build_tag(tag)
-    # invoke push script (accept tag name)
-    print('----------------------')
+      push_tag(tag)
+
+      print('----------------------')
+    except Exception as e:      
+      with open('index.html', 'w') as file:
+        file.write(str(e))
+        traceback.print_tb(sys.exc_info()[-1], limit=None, file=file)
+      s3_client.upload_file(
+        'index.html',
+        constants.S3_BUCKET,
+        f'{constants.S3_BUCKET_DIR}/{tag}/index.html',
+        ExtraArgs={
+          'ACL': 'public-read',
+          'ContentType': 'text/html',
+          'ContentDisposition': 'inline'
+        }
+      )
   print('Returning to master branch')
   call(['git', 'checkout', 'master'])
+  print('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< END OF EXECUTION >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n\n\n\n')

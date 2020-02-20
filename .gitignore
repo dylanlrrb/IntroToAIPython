@@ -7,7 +7,9 @@ checkpoint.pt
 # CDCI pipeline stuff
 container_cache/*/*
 !container_cache/**/README.md
-notebook.html
+index.html
+error.html
+log.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

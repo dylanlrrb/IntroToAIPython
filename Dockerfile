@@ -35,8 +35,8 @@ WORKDIR /src
 # CMD jupyter notebook --no-browser --ip=0.0.0.0 --port=8889
 # EXPOSE 8889
 
-CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute ${NOTEBOOK_TITLE} --output=notebook.html
-# CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute <notebook_to_execute>.ipynb --output=notebook.html
+CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute ${NOTEBOOK_TITLE} --output=index.html
+# CMD jupyter nbconvert --to html --ExecutePreprocessor.timeout=3600 --execute <notebook_to_execute>.ipynb --output=index.html
 
 # docker build -t intro_ai .
 # docker build -t <image-name> .
