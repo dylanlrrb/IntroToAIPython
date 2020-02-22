@@ -1,7 +1,6 @@
 from subprocess import call
-from  os import path, remove
+from  os import path
 import constants
-import urllib.request
 
 def verify_and_download ():
   with open(f'{constants.WORKING_DIR}/datasets.txt', 'r') as file:
@@ -10,14 +9,24 @@ def verify_and_download ():
       print(f'checking if required dataset "{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}" exists.')
       path_already_exists = path.isdir(f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}')
       if not path_already_exists:
-        urllib.request.urlretrieve(DATASET_URL, f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}.zip')
+        print(f'dataset "{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}" does not exist, downloading...')
+        call([
+          'curl',
+          '-o',
+          f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}.zip',
+          DATASET_URL,
+          '--create-dirs'
+        ])
         call([
           'unzip',
           f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}.zip',
           '-d',
           f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}'
         ])
-        remove(f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}.zip')
+        call([
+          'rm',
+          f'{constants.WORKING_DIR}/datasets/{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}.zip',
+          ])
       else:
         print(f'specified dataset "{DATASET_VERSION}/{UNCOMPRESSED_DATASET_NAME}" already exists.')
 
