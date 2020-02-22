@@ -1,1 +1,1 @@
-https://datasets-349058029.s3-us-west-2.amazonaws.com/IntroToAIPython/flowers.zip flowers v1
+https://datasets-349058029.s3-us-west-2.amazonaws.com/IntroToAIPython/flowers2.zip flowers v2
