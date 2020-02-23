@@ -59,7 +59,7 @@ def build_tag(tag):
   for file in constants.BUILD_PRODUCTS:
     try_to_remove(file)
   out = check_output(['bash', 'scripts/run_container.sh', constants.PYTHON_VERSION, constants.NOTEBOOK_NAME, constants.DOCKER_IMAGE_NAME, *constants.VOLUME_MAPPINGS])
-  print(out)
+  print(out.decode("utf-8"))
 
 def push_tag (tag):
   for file in constants.BUILD_PRODUCTS:
