@@ -1,0 +1,1 @@
+python scripts/run_pipeline.py >> log.txt
