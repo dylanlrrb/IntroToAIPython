@@ -2,7 +2,7 @@ WORKING_DIR = 'src'
 BUILD_TAG_PREFIX = 'build_'
 S3_BUCKET = 'built-model-repository'
 S3_BUCKET_DIR = 'intro_to_ai_python'
-PYTHON_VERSION = 'python3.6'
+PYTHON_VERSION = 'python3.7'
 DOCKER_IMAGE_NAME = 'intro_ai'
 VOLUME_MAPPINGS = [
   '/src:/src',
